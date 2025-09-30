@@ -1,0 +1,18 @@
+{
+  "name": "ecommerce-fullstack",
+  "version": "1.0.0",
+  "description": "Full-stack E-commerce application with React frontend and .NET backend",
+  "scripts": {
+    "dev": "cd project && npm run dev",
+    "dev:api": "cd EcommerceApi && dotnet run",
+    "dev:all": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
+    "install:frontend": "cd project && npm install",
+    "install:all": "cd project && npm install && cd ../EcommerceApi && dotnet restore",
+    "build:frontend": "cd project && npm run build",
+    "build:api": "cd EcommerceApi && dotnet build",
+    "start": "npm run dev"
+  },
+  "keywords": ["ecommerce", "react", "dotnet", "fullstack"],
+  "author": "",
+  "license": "MIT"
+}

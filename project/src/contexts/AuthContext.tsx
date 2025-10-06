@@ -6,6 +6,10 @@ interface User {
   email: string;
   loyaltyPoints: number;
   tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  phone?: string;
+  address1?: string;
+  city?: string;
+  country?: string;
 }
 
 interface AuthContextType {
@@ -14,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,7 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    return saved ? JSON.parse(saved) as User : null;
   });
 
   useEffect(() => {
@@ -58,13 +63,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newUser);
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...updates } as User : prev);
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       isAuthenticated: !!user,
       login,
       logout,
-      register
+      register,
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>

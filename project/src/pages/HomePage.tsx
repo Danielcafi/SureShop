@@ -84,12 +84,48 @@ const HomePage = () => {
   ];
 
   const categories = [
-    { name: "Electronics", icon: "📱", image: "https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300", items: "2,500+" },
-    { name: "Fashion", icon: "👗", image: "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=300", items: "5,800+" },
-    { name: "Home & Garden", icon: "🏠", image: "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=300", items: "3,200+" },
-    { name: "Sports", icon: "⚽", image: "https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg?auto=compress&cs=tinysrgb&w=300", items: "1,800+" },
-    { name: "Books", icon: "📚", image: "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=300", items: "15,000+" },
-    { name: "Health & Beauty", icon: "💄", image: "https://images.pexels.com/photos/3686769/pexels-photo-3686769.jpeg?auto=compress&cs=tinysrgb&w=300", items: "2,100+" }
+    { 
+      name: "Electronics", 
+      icon: "📱", 
+      image: "https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop", 
+      items: "2,500+",
+      description: "Latest gadgets and tech"
+    },
+    { 
+      name: "Fashion", 
+      icon: "👗", 
+      image: "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop", 
+      items: "5,800+",
+      description: "Trendy clothing & accessories"
+    },
+    { 
+      name: "Home & Garden", 
+      icon: "🏠", 
+      image: "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop", 
+      items: "3,200+",
+      description: "Furniture & decor"
+    },
+    { 
+      name: "Sports", 
+      icon: "⚽", 
+      image: "https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop", 
+      items: "1,800+",
+      description: "Fitness & outdoor gear"
+    },
+    { 
+      name: "Books", 
+      icon: "📚", 
+      image: "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop", 
+      items: "15,000+",
+      description: "Books & educational materials"
+    },
+    { 
+      name: "Health & Beauty", 
+      icon: "💄", 
+      image: "https://images.pexels.com/photos/3686769/pexels-photo-3686769.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop", 
+      items: "2,100+",
+      description: "Beauty & wellness products"
+    }
   ];
 
   // Auto-slide functionality
@@ -320,7 +356,8 @@ const HomePage = () => {
                     <span className="text-2xl">{category.icon}</span>
                     <h3 className="text-xl font-bold">{category.name}</h3>
                   </div>
-                  <p className="text-sm opacity-90">{category.items} products</p>
+                  <p className="text-sm opacity-90 mb-1">{category.description}</p>
+                  <p className="text-xs opacity-75">{category.items} products</p>
                 </div>
               </Link>
             ))}

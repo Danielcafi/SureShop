@@ -18,6 +18,9 @@ interface BlogPost {
 const BlogPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState('');
 
   const blogPosts: BlogPost[] = [
     {
@@ -109,6 +112,26 @@ const BlogPage = () => {
     const matchesCategory = selectedCategory === 'all' || post.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSubscribing(true);
+    setSubscriptionMessage('');
+
+    try {
+      // Simulate API call - replace with actual newsletter service
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSubscriptionMessage('Thank you for subscribing! Check your email for confirmation.');
+      setEmail('');
+    } catch (error) {
+      setSubscriptionMessage('Something went wrong. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -295,17 +318,29 @@ const BlogPage = () => {
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Subscribe to our newsletter and never miss the latest articles, tips, and insights.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
             <input
               type="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               className="flex-1 px-6 py-3 rounded-full border-0 focus:ring-2 focus:ring-white focus:ring-opacity-50"
               style={{ color: 'black', backgroundColor: 'white' }}
             />
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
-              Subscribe
+            <button 
+              type="submit"
+              disabled={isSubscribing}
+              className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubscribing ? 'Subscribing...' : 'Subscribe'}
             </button>
-          </div>
+          </form>
+          {subscriptionMessage && (
+            <p className={`text-sm mt-3 ${subscriptionMessage.includes('Thank you') ? 'text-green-200' : 'text-red-200'}`}>
+              {subscriptionMessage}
+            </p>
+          )}
         </div>
       </div>
     </div>

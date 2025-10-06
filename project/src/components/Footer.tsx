@@ -1,8 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
 const Footer = () => {
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState('');
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSubscribing(true);
+    setSubscriptionMessage('');
+
+    try {
+      // Simulate API call - replace with actual newsletter service
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSubscriptionMessage('Thank you for subscribing! Check your email for confirmation.');
+      setEmail('');
+    } catch (error) {
+      setSubscriptionMessage('Something went wrong. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
   return (
     <footer className="bg-gray-900 text-gray-300">
       {/* Newsletter Section */}
@@ -11,20 +34,32 @@ const Footer = () => {
           <div className="text-center">
             <h3 className="text-2xl font-bold text-white mb-2">Stay Updated</h3>
             <p className="text-blue-100 mb-6">Subscribe to get exclusive deals and updates</p>
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-3">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-3">
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="px-6 py-3 rounded-full w-full sm:w-auto max-w-md border-0 focus:ring-2 focus:ring-white focus:ring-opacity-50"
                 style={{ 
                   color: 'black',
                   backgroundColor: 'white'
                 }}
               />
-              <button className="px-8 py-3 bg-white text-blue-600 rounded-full font-semibold hover:bg-gray-100 transition-colors">
-                Subscribe
+              <button 
+                type="submit"
+                disabled={isSubscribing}
+                className="px-8 py-3 bg-white text-blue-600 rounded-full font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubscribing ? 'Subscribing...' : 'Subscribe'}
               </button>
-            </div>
+            </form>
+            {subscriptionMessage && (
+              <p className={`text-sm mt-3 ${subscriptionMessage.includes('Thank you') ? 'text-green-200' : 'text-red-200'}`}>
+                {subscriptionMessage}
+              </p>
+            )}
             <p className="text-blue-100 text-sm mt-3">Get 10% off your first order!</p>
           </div>
         </div>

@@ -7,6 +7,9 @@ import { useWishlist } from '../contexts/WishlistContext';
 const HomePage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 45, seconds: 30 });
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState('');
   const { addItem } = useCart();
   const { addItem: addToWishlist, isInWishlist } = useWishlist();
 
@@ -132,6 +135,26 @@ const HomePage = () => {
       image: product.image,
       originalPrice: product.originalPrice
     });
+  };
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSubscribing(true);
+    setSubscriptionMessage('');
+
+    try {
+      // Simulate API call - replace with actual newsletter service
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSubscriptionMessage('Thank you for subscribing! Check your email for confirmation.');
+      setEmail('');
+    } catch (error) {
+      setSubscriptionMessage('Something went wrong. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
   };
 
   return (
@@ -412,20 +435,32 @@ const HomePage = () => {
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
             Subscribe to our newsletter and be the first to know about exclusive deals, new arrivals, and special promotions.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 max-w-md mx-auto">
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 max-w-md mx-auto">
             <input
               type="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               className="w-full sm:flex-1 px-6 py-3 rounded-full bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-blue-500 placeholder-gray-500"
               style={{ 
                 color: 'black',
                 backgroundColor: 'white'
               }}
             />
-            <button className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors">
-              Subscribe
+            <button 
+              type="submit"
+              disabled={isSubscribing}
+              className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubscribing ? 'Subscribing...' : 'Subscribe'}
             </button>
-          </div>
+          </form>
+          {subscriptionMessage && (
+            <p className={`text-sm mt-4 ${subscriptionMessage.includes('Thank you') ? 'text-green-400' : 'text-red-400'}`}>
+              {subscriptionMessage}
+            </p>
+          )}
           <p className="text-gray-400 text-sm mt-4">
             Get 10% off your first order when you subscribe!
           </p>

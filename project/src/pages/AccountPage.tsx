@@ -11,6 +11,7 @@ const AccountPage: React.FC = () => {
   const [country, setCountry] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -30,11 +31,17 @@ const AccountPage: React.FC = () => {
     try {
       await updateProfile({ name, email, phone, address1, city, country });
       setMessage('Profile updated successfully');
+      setIsEditing(false); // Switch to read-only mode after saving
     } catch (err: any) {
       setMessage(err?.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleModify = () => {
+    setIsEditing(true);
+    setMessage(null);
   };
 
   if (!isAuthenticated) {
@@ -52,78 +59,147 @@ const AccountPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {message && (
-              <div className={`text-sm rounded p-3 ${message.includes('successfully') ? 'text-green-700 bg-green-50 border border-green-200' : 'text-red-700 bg-red-50 border border-red-200'}`}>
-                {message}
-              </div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Profile Information</h2>
+            {!isEditing && (
+              <button
+                onClick={handleModify}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Modify
+              </button>
             )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">This is how your account is identified.</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <input
-                type="text"
-                value={address1}
-                onChange={(e) => setAddress1(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          </div>
+          
+          {isEditing ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {message && (
+                <div className={`text-sm rounded p-3 ${message.includes('successfully') ? 'text-green-700 bg-green-50 border border-green-200' : 'text-red-700 bg-red-50 border border-red-200'}`}>
+                  {message}
+                </div>
+              )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <input
                   type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
-                  type="text"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">This is how your account is identified.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  value={address1}
+                  onChange={(e) => setAddress1(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <input
+                    type="text"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              {message && (
+                <div className={`text-sm rounded p-3 ${message.includes('successfully') ? 'text-green-700 bg-green-50 border border-green-200' : 'text-red-700 bg-red-50 border border-red-200'}`}>
+                  {message}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <div className="w-full px-3 py-2 bg-gray-50 border rounded-lg text-gray-900">
+                  {name || 'Not provided'}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div className="w-full px-3 py-2 bg-gray-50 border rounded-lg text-gray-900">
+                  {email || 'Not provided'}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">This is how your account is identified.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <div className="w-full px-3 py-2 bg-gray-50 border rounded-lg text-gray-900">
+                  {phone || 'Not provided'}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <div className="w-full px-3 py-2 bg-gray-50 border rounded-lg text-gray-900">
+                  {address1 || 'Not provided'}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <div className="w-full px-3 py-2 bg-gray-50 border rounded-lg text-gray-900">
+                    {city || 'Not provided'}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <div className="w-full px-3 py-2 bg-gray-50 border rounded-lg text-gray-900">
+                    {country || 'Not provided'}
+                  </div>
+                </div>
+              </div>
             </div>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </form>
+          )}
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Account Summary</h2>

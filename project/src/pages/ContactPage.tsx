@@ -1,19 +1,48 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { contactService, ContactFormData } from '../services/contactService';
 
 const ContactPage = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    alert('Thank you for your message! We\'ll get back to you within 24 hours.');
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+
+    try {
+      const response = await contactService.submitContactForm(formData);
+      
+      if (response.success) {
+        setSubmitStatus({ 
+          type: 'success', 
+          message: response.message 
+        });
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setSubmitStatus({ 
+          type: 'error', 
+          message: response.message 
+        });
+      }
+    } catch (error) {
+      setSubmitStatus({ 
+        type: 'error', 
+        message: 'An unexpected error occurred. Please try again.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -130,6 +159,22 @@ const ContactPage = () => {
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
               
+              {/* Status Messages */}
+              {submitStatus.type && (
+                <div className={`mb-6 p-4 rounded-lg flex items-center space-x-3 ${
+                  submitStatus.type === 'success' 
+                    ? 'bg-green-50 text-green-800 border border-green-200' 
+                    : 'bg-red-50 text-red-800 border border-red-200'
+                }`}>
+                  {submitStatus.type === 'success' ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <span className="font-medium">{submitStatus.message}</span>
+                </div>
+              )}
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
@@ -206,10 +251,20 @@ const ContactPage = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-2"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-5 h-5" />
-                  <span>Send Message</span>
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>Send Message</span>
+                    </>
+                  )}
                 </button>
               </form>
             </div>

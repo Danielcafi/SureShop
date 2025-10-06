@@ -32,6 +32,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import ChatBot from './components/ChatBot';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
 
@@ -42,6 +43,7 @@ function App() {
           <WishlistProvider>
             <NotificationProvider>
               <Router>
+                <ScrollToTop />
                 <div className="min-h-screen bg-gray-50">
                   <Header />
                   <main className="pt-20">

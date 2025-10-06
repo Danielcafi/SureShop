@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj": {}
+    "C:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj": {}
   },
   "projects": {
-    "c:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj": {
+    "C:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj",
+        "projectUniqueName": "C:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj",
         "projectName": "EcommerceApi",
-        "projectPath": "c:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj",
+        "projectPath": "C:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\EcommerceApi.csproj",
         "packagesPath": "C:\\Users\\laptop\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\obj\\",
+        "outputPath": "C:\\Users\\laptop\\xprojects\\E-commerce\\EcommerceApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\laptop\\AppData\\Roaming\\NuGet\\NuGet.Config"

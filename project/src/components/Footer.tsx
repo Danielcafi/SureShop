@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { scrollToTop } from '../hooks/useScrollToTop';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -101,11 +102,11 @@ const Footer = () => {
             <div>
               <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-                <li><Link to="/press" className="hover:text-white transition-colors">Press</Link></li>
+                <li><Link to="/about" onClick={scrollToTop} className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/contact" onClick={scrollToTop} className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link to="/blog" onClick={scrollToTop} className="hover:text-white transition-colors">Blog</Link></li>
+                <li><Link to="/careers" onClick={scrollToTop} className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/press" onClick={scrollToTop} className="hover:text-white transition-colors">Press</Link></li>
               </ul>
             </div>
 
@@ -113,11 +114,11 @@ const Footer = () => {
             <div>
               <h4 className="text-lg font-semibold text-white mb-4">Customer Service</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
-                <li><Link to="/returns" className="hover:text-white transition-colors">Returns & Refunds</Link></li>
-                <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping Info</Link></li>
-                <li><Link to="/size-guide" className="hover:text-white transition-colors">Size Guide</Link></li>
-                <li><Link to="/track-order" className="hover:text-white transition-colors">Track Order</Link></li>
+                <li><Link to="/help" onClick={scrollToTop} className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/returns" onClick={scrollToTop} className="hover:text-white transition-colors">Returns & Refunds</Link></li>
+                <li><Link to="/shipping" onClick={scrollToTop} className="hover:text-white transition-colors">Shipping Info</Link></li>
+                <li><Link to="/size-guide" onClick={scrollToTop} className="hover:text-white transition-colors">Size Guide</Link></li>
+                <li><Link to="/track-order" onClick={scrollToTop} className="hover:text-white transition-colors">Track Order</Link></li>
               </ul>
             </div>
 

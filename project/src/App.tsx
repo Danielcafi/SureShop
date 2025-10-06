@@ -27,6 +27,8 @@ import TrackOrderPage from './pages/TrackOrderPage';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { WishlistProvider } from './contexts/WishlistContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import NotificationsPage from './pages/NotificationsPage';
 import ChatBot from './components/ChatBot';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -38,40 +40,43 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
-            <Router>
-              <div className="min-h-screen bg-gray-50">
-                <Header />
-                <main className="pt-20">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/products" element={<ProductListingPage />} />
-                    <Route path="/products/:category" element={<ProductListingPage />} />
-                    <Route path="/product/:id" element={<ProductDetailPage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/account" element={<AccountPage />} />
-                    <Route path="/orders" element={<OrdersPage />} />
-                    <Route path="/orders/:id" element={<OrderDetailPage />} />
-                    <Route path="/wishlist" element={<WishlistPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/blog" element={<BlogPage />} />
-                    <Route path="/careers" element={<CareersPage />} />
-                    <Route path="/press" element={<PressPage />} />
-                    <Route path="/help" element={<HelpCenterPage />} />
-                    <Route path="/returns" element={<ReturnsRefundsPage />} />
-                    <Route path="/shipping" element={<ShippingInfoPage />} />
-                    <Route path="/size-guide" element={<SizeGuidePage />} />
-                    <Route path="/track-order" element={<TrackOrderPage />} />
-                  </Routes>
-                </main>
-                <Footer />
-                <ChatBot />
-              </div>
-            </Router>
+            <NotificationProvider>
+              <Router>
+                <div className="min-h-screen bg-gray-50">
+                  <Header />
+                  <main className="pt-20">
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/products" element={<ProductListingPage />} />
+                      <Route path="/products/:category" element={<ProductListingPage />} />
+                      <Route path="/product/:id" element={<ProductDetailPage />} />
+                      <Route path="/search" element={<SearchPage />} />
+                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/account" element={<AccountPage />} />
+                      <Route path="/orders" element={<OrdersPage />} />
+                      <Route path="/orders/:id" element={<OrderDetailPage />} />
+                      <Route path="/wishlist" element={<WishlistPage />} />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/register" element={<RegisterPage />} />
+                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
+                      <Route path="/blog" element={<BlogPage />} />
+                      <Route path="/careers" element={<CareersPage />} />
+                      <Route path="/press" element={<PressPage />} />
+                      <Route path="/help" element={<HelpCenterPage />} />
+                      <Route path="/returns" element={<ReturnsRefundsPage />} />
+                      <Route path="/shipping" element={<ShippingInfoPage />} />
+                      <Route path="/size-guide" element={<SizeGuidePage />} />
+                      <Route path="/track-order" element={<TrackOrderPage />} />
+                      <Route path="/notifications" element={<NotificationsPage />} />
+                    </Routes>
+                  </main>
+                  <Footer />
+                  <ChatBot />
+                </div>
+              </Router>
+            </NotificationProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

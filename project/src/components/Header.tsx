@@ -4,6 +4,7 @@ import { Search, ShoppingCart, Heart, User, Menu, X, Mic, Bell } from 'lucide-re
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useNotifications } from '../contexts/NotificationContext';
 import MiniCart from './MiniCart';
 
 const Header = () => {
@@ -16,6 +17,7 @@ const Header = () => {
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
   const { user, isAuthenticated } = useAuth();
+  const { unreadCount } = useNotifications();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const totalCartItems = getTotalItems();
@@ -141,11 +143,16 @@ const Header = () => {
 
             {/* Notifications */}
             {isAuthenticated && (
-              <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
+              <button
+                className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                onClick={() => navigate('/notifications')}
+              >
                 <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  3
-                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
             )}
 

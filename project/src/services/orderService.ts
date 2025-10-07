@@ -42,7 +42,7 @@ export type OrderStatus =
   | 'refunded';
 
 export interface PaymentMethod {
-  type: 'card' | 'paypal' | 'apple_pay' | 'google_pay';
+  type: 'card' | 'paypal' | 'apple_pay' | 'google_pay' | 'payoneer';
   last4?: string;
   brand?: string;
   expiryMonth?: number;

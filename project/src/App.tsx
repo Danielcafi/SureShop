@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Elements } from '@stripe/react-stripe-js';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
@@ -7,6 +8,7 @@ import ProductListingPage from './pages/ProductListingPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import CheckoutPageNew from './pages/CheckoutPageNew';
 import AccountPage from './pages/AccountPage';
 import WishlistPage from './pages/WishlistPage';
 import LoginPage from './pages/LoginPage';
@@ -29,6 +31,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ChatProvider } from './contexts/ChatContext';
+import { initializeStripe } from './services/paymentService';
 import GlobalChatModal from './components/GlobalChatModal';
 import NotificationsPage from './pages/NotificationsPage';
 import ChatBot from './components/ChatBot';
@@ -37,6 +40,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
+  const stripePromise = initializeStripe();
 
   return (
     <ErrorBoundary>
@@ -45,6 +49,7 @@ function App() {
           <WishlistProvider>
             <NotificationProvider>
               <ChatProvider>
+              <Elements stripe={stripePromise}>
               <Router>
                 <ScrollToTop />
                 <div className="min-h-screen bg-gray-50">
@@ -82,6 +87,7 @@ function App() {
                   <ChatBot />
                 </div>
               </Router>
+              </Elements>
               </ChatProvider>
             </NotificationProvider>
           </WishlistProvider>

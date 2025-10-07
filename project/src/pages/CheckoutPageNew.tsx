@@ -7,6 +7,11 @@ import { Product } from '../data/products';
 import { orderService } from '../services/orderService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { CreditCard, MapPin, Lock } from 'lucide-react';
+import PayPalButton from '../components/PayPalButton';
+import StripePaymentForm from '../components/StripePaymentForm';
+import PayoneerPaymentForm from '../components/PayoneerPaymentForm';
+import { processPayPalPayment, processPayoneerPayment } from '../services/paymentService';
+import { PaymentResult } from '../config/payment';
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -81,8 +86,8 @@ const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate
     cvv: '',
     nameOnCard: ''
   });
-  const [cardBrand, setCardBrand] = useState<'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown'>('unknown');
-  const [paymentErrors, setPaymentErrors] = useState<{ [k: string]: string }>({});
+  const [cardBrand] = useState<'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown'>('unknown');
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
   
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number } | null>(null);
@@ -171,57 +176,22 @@ const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate
     }
   }, [cartItems]);
 
-  // Payment validation helpers
-  const luhnCheck = (value: string) => {
-    const digits = value.replace(/\s+/g, '');
-    if (!/^\d{12,19}$/.test(digits)) return false;
-    let sum = 0; let shouldDouble = false;
-    for (let i = digits.length - 1; i >= 0; i--) {
-      let digit = parseInt(digits.charAt(i), 10);
-      if (shouldDouble) { digit *= 2; if (digit > 9) digit -= 9; }
-      sum += digit; shouldDouble = !shouldDouble;
-    }
-    return sum % 10 === 0;
-  };
-
-  const detectBrand = (num: string): typeof cardBrand => {
-    const n = num.replace(/\s+/g, '');
-    if (/^4\d{12,18}$/.test(n)) return 'visa';
-    if (/^(5[1-5]\d{14}|2(2[2-9]|[3-6]\d|7[01])\d{12})$/.test(n)) return 'mastercard';
-    if (/^3[47]\d{13}$/.test(n)) return 'amex';
-    if (/^6(?:011|5\d{2})\d{12}$/.test(n)) return 'discover';
-    return 'unknown';
-  };
-
-  const isValidExpiry = (mm: string, yy: string) => {
-    if (!/^\d{2}$/.test(mm) || !/^\d{4}$/.test(yy)) return false;
-    const month = parseInt(mm, 10);
-    if (month < 1 || month > 12) return false;
-    const now = new Date();
-    const exp = new Date(parseInt(yy, 10), month - 1, 1);
-    exp.setMonth(exp.getMonth() + 1);
-    return exp > now;
-  };
-
-  const isValidCvv = (cvv: string, brand: typeof cardBrand) => {
-    if (!/^\d{3,4}$/.test(cvv)) return false;
-    return brand === 'amex' ? cvv.length === 4 : cvv.length === 3;
-  };
 
   useEffect(() => {
     // Wait for cart items to load
     if (!cartItems || !Array.isArray(cartItems)) {
       return;
     }
-    
+
     if (cartItems.length === 0) {
       navigate('/cart');
       return;
     }
-    
+
     setIsInitializing(false);
     loadCheckoutData();
   }, [cartItems, navigate, loadCheckoutData]);
+
 
   const handleAddressChange = (type: 'shipping' | 'billing', field: string, value: string) => {
     if (type === 'shipping') {
@@ -293,40 +263,11 @@ const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate
     }
   };
 
-  const handlePlaceOrder = async () => {
+  const handlePaymentSuccess = async (paymentResult: PaymentResult) => {
     if (!cartSummary) return;
-    
-    setLoading(true);
-    setError(null);
 
     try {
-      // Validate required fields
-      if (!shippingAddress.firstName || !shippingAddress.lastName || !shippingAddress.address1 || 
-          !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipCode) {
-        throw new Error('Please fill in all shipping address fields');
-      }
-      
-      if (!useSameAddress && (!billingAddress.firstName || !billingAddress.lastName || 
-          !billingAddress.address1 || !billingAddress.city || !billingAddress.state || 
-          !billingAddress.zipCode)) {
-        throw new Error('Please fill in all billing address fields');
-      }
-      
-      if (paymentMethod.type === 'card') {
-        const errors: { [k: string]: string } = {};
-        const brand = detectBrand(paymentMethod.cardNumber);
-        setCardBrand(brand);
-        if (!paymentMethod.nameOnCard.trim()) errors.nameOnCard = 'Name on card is required';
-        if (!luhnCheck(paymentMethod.cardNumber)) errors.cardNumber = 'Invalid card number';
-        if (!isValidExpiry(paymentMethod.expiryMonth, paymentMethod.expiryYear)) errors.expiry = 'Invalid expiry date';
-        if (!isValidCvv(paymentMethod.cvv, brand)) errors.cvv = brand === 'amex' ? 'CVV must be 4 digits for Amex' : 'CVV must be 3 digits';
-        if (Object.keys(errors).length > 0) {
-          setPaymentErrors(errors);
-          throw new Error('Please correct the highlighted payment fields');
-        }
-      }
-
-      // Create order
+      // Create order with payment result
       const orderData = {
         items: cartSummary.items.map(item => ({
           productId: item.product.id,
@@ -337,33 +278,79 @@ const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate
         })),
         shippingAddress: useSameAddress ? shippingAddress : billingAddress,
         billingAddress: useSameAddress ? shippingAddress : billingAddress,
-        paymentMethod: paymentMethod.type === 'card' ? {
-          type: paymentMethod.type,
-          last4: paymentMethod.cardNumber.slice(-4),
-          brand: cardBrand === 'unknown' ? 'Card' : cardBrand,
-          expiryMonth: parseInt(paymentMethod.expiryMonth),
-          expiryYear: parseInt(paymentMethod.expiryYear)
-        } : {
-          type: (paymentMethod.type === 'paypal' ? 'paypal' : 'payoneer') as 'paypal' | 'payoneer',
-          last4: undefined,
-          brand: paymentMethod.type === 'paypal' ? 'PayPal' : 'Payoneer',
-          expiryMonth: undefined,
-          expiryYear: undefined
+        paymentMethod: {
+          type: paymentResult.paymentMethod,
+          brand: paymentResult.paymentMethod === 'card' ? cardBrand : 
+                 paymentResult.paymentMethod === 'paypal' ? 'PayPal' : 'Payoneer',
+          transactionId: paymentResult.transactionId
         },
         notes: `Shipping: ${shippingOptions.find(s => s.id === selectedShipping)?.name}`
       };
 
       const order = await orderService.createOrder(orderData);
-      
+
       // Clear cart
       clearCart();
-      
+
       // Redirect to order confirmation
       navigate(`/orders/${order.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to place order');
+      setError(err instanceof Error ? err.message : 'Failed to create order');
     } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    setError(error);
+    setPaymentProcessing(false);
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!cartSummary) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Validate required fields (shipping address, etc.)
+      if (!shippingAddress.firstName || !shippingAddress.lastName || !shippingAddress.address1 ||
+          !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipCode) {
+        throw new Error('Please fill in all shipping address fields');
+      }
+
+      if (!useSameAddress && (!billingAddress.firstName || !billingAddress.lastName ||
+          !billingAddress.address1 || !billingAddress.city || !billingAddress.state ||
+          !billingAddress.zipCode)) {
+        throw new Error('Please fill in all billing address fields');
+      }
+
+      setPaymentProcessing(true);
       setLoading(false);
+
+      // Process payment based on method
+      let paymentResult: PaymentResult;
+      
+      if (paymentMethod.type === 'card') {
+        // For Stripe, we'll handle this in the component
+        return;
+      } else if (paymentMethod.type === 'paypal') {
+        paymentResult = await processPayPalPayment(cartSummary.total, 'USD');
+      } else if (paymentMethod.type === 'payoneer') {
+        paymentResult = await processPayoneerPayment('DEMO123', cartSummary.total, 'USD');
+      } else {
+        throw new Error('Invalid payment method');
+      }
+
+      if (paymentResult.success) {
+        await handlePaymentSuccess(paymentResult);
+      } else {
+        throw new Error(paymentResult.error || 'Payment failed');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to place order');
+      setLoading(false);
+      setPaymentProcessing(false);
     }
   };
 
@@ -556,89 +543,29 @@ const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate
                   </div>
 
                   {paymentMethod.type === 'card' ? (
-                  <div className="space-y-4">
-                  <div className="mb-4">
-                    <label className="form-label">Name on Card</label>
-                    <input
-                      type="text"
-                      value={paymentMethod.nameOnCard}
-                      onChange={(e) => setPaymentMethod(prev => ({ ...prev, nameOnCard: e.target.value }))}
-                      className="form-input"
-                      required
+                    <StripePaymentForm
+                      amount={cartSummary.total}
+                      currency="usd"
+                      onSuccess={(transactionId) => handlePaymentSuccess({ success: true, transactionId, paymentMethod: 'card' })}
+                      onError={(error) => handlePaymentError(error)}
+                      disabled={paymentProcessing}
                     />
-                    {paymentErrors.nameOnCard && <p className="text-sm text-red-600 mt-1">{paymentErrors.nameOnCard}</p>}
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="form-label">Card Number</label>
-                    <input
-                      type="text"
-                      value={paymentMethod.cardNumber}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d\s]/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-                        setPaymentMethod(prev => ({ ...prev, cardNumber: value }));
-                        setCardBrand(detectBrand(value));
-                      }}
-                      className="form-input"
-                      placeholder="1234 5678 9012 3456"
-                      required
+                  ) : paymentMethod.type === 'paypal' ? (
+                    <PayPalButton
+                      amount={cartSummary.total}
+                      currency="USD"
+                      onSuccess={(transactionId) => handlePaymentSuccess({ success: true, transactionId, paymentMethod: 'paypal' })}
+                      onError={(error) => handlePaymentError(error)}
+                      disabled={paymentProcessing}
                     />
-                    <div className="text-xs text-gray-500 mt-1">Detected: {cardBrand !== 'unknown' ? cardBrand.toUpperCase() : 'Unknown'}</div>
-                    {paymentErrors.cardNumber && <p className="text-sm text-red-600 mt-1">{paymentErrors.cardNumber}</p>}
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <label className="form-label">Expiry Month</label>
-                      <select
-                        value={paymentMethod.expiryMonth}
-                        onChange={(e) => setPaymentMethod(prev => ({ ...prev, expiryMonth: e.target.value }))}
-                        className="form-select"
-                        required
-                      >
-                        <option value="">Month</option>
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
-                            {String(i + 1).padStart(2, '0')}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="form-label">Expiry Year</label>
-                      <select
-                        value={paymentMethod.expiryYear}
-                        onChange={(e) => setPaymentMethod(prev => ({ ...prev, expiryYear: e.target.value }))}
-                        className="form-select"
-                        required
-                      >
-                        <option value="">Year</option>
-                        {Array.from({ length: 10 }, (_, i) => (
-                          <option key={i} value={String(new Date().getFullYear() + i)}>
-                            {new Date().getFullYear() + i}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="form-label">CVV</label>
-                      <input
-                        type="password"
-                        value={paymentMethod.cvv}
-                        onChange={(e) => setPaymentMethod(prev => ({ ...prev, cvv: e.target.value.replace(/\D/g, '').slice(0, cardBrand === 'amex' ? 4 : 3) }))}
-                        className="form-input"
-                        placeholder={cardBrand === 'amex' ? '1234' : '123'}
-                        required
-                      />
-                      {paymentErrors.expiry && <p className="text-sm text-red-600 mt-1">{paymentErrors.expiry}</p>}
-                      {paymentErrors.cvv && <p className="text-sm text-red-600 mt-1">{paymentErrors.cvv}</p>}
-                    </div>
-                  </div>
-                  </div>
                   ) : (
-                    <div className="mb-4 p-4 border border-blue-200 rounded-md bg-blue-50 text-blue-800">
-                      You selected {paymentMethod.type === 'paypal' ? 'PayPal' : 'Payoneer'}. In production, you'll be redirected to the provider to complete payment securely.
-                    </div>
+                    <PayoneerPaymentForm
+                      amount={cartSummary.total}
+                      currency="USD"
+                      onSuccess={(transactionId) => handlePaymentSuccess({ success: true, transactionId, paymentMethod: 'payoneer' })}
+                      onError={(error) => handlePaymentError(error)}
+                      disabled={paymentProcessing}
+                    />
                   )}
                   
                   <div className="flex items-center justify-between">

@@ -12,6 +12,9 @@
     "deploy": "npm run build && npm run preview"
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^8.9.2",
+    "@stripe/react-stripe-js": "^5.0.0",
+    "@stripe/stripe-js": "^8.0.0",
     "@supabase/supabase-js": "^2.57.4",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.344.0",

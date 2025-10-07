@@ -13,6 +13,7 @@ public class EcommerceContext : DbContext
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<OrderTracking> OrderTrackings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

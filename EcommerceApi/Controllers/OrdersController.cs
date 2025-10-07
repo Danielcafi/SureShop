@@ -29,10 +29,45 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Order>> CreateOrder(Order order)
     {
+        // Generate unique order number
+        order.OrderNumber = $"SP-{DateTime.UtcNow:yyyy}-{order.Id:D6}";
+        
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction("GetOrders", new { userId = order.UserId }, order);
+    }
+
+    [HttpGet("track")]
+    public async Task<ActionResult<Order>> TrackOrder([FromQuery] string? orderNumber, [FromQuery] string? email, [FromQuery] string? trackingNumber)
+    {
+        Order? order = null;
+
+        if (!string.IsNullOrEmpty(orderNumber) && !string.IsNullOrEmpty(email))
+        {
+            // Search by order number and email
+            order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Include(o => o.TrackingEvents)
+                .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber && o.Email.ToLower() == email.ToLower());
+        }
+        else if (!string.IsNullOrEmpty(trackingNumber))
+        {
+            // Search by tracking number
+            order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Include(o => o.TrackingEvents)
+                .FirstOrDefaultAsync(o => o.TrackingNumber == trackingNumber);
+        }
+
+        if (order == null)
+        {
+            return NotFound(new { message = "Order not found" });
+        }
+
+        return order;
     }
 
     [HttpPut("{id}")]

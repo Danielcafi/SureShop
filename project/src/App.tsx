@@ -28,6 +28,8 @@ import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ChatProvider } from './contexts/ChatContext';
+import GlobalChatModal from './components/GlobalChatModal';
 import NotificationsPage from './pages/NotificationsPage';
 import ChatBot from './components/ChatBot';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -42,6 +44,7 @@ function App() {
         <CartProvider>
           <WishlistProvider>
             <NotificationProvider>
+              <ChatProvider>
               <Router>
                 <ScrollToTop />
                 <div className="min-h-screen bg-gray-50">
@@ -75,9 +78,11 @@ function App() {
                     </Routes>
                   </main>
                   <Footer />
+                  <GlobalChatModal />
                   <ChatBot />
                 </div>
               </Router>
+              </ChatProvider>
             </NotificationProvider>
           </WishlistProvider>
         </CartProvider>

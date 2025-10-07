@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import { Ruler, Shirt, Footprints, Watch, ArrowRight, Download, Info } from 'lucide-react';
+import { useChat } from '../contexts/ChatContext';
 
 const SizeGuidePage = () => {
   const [selectedCategory, setSelectedCategory] = useState('clothing');
   const [selectedGender, setSelectedGender] = useState('unisex');
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    if (categoryId === 'shoes') {
+      setSelectedGender(prev => (prev === 'women' || prev === 'men') ? prev : 'women');
+    } else if (categoryId === 'clothing') {
+      setSelectedGender(prev => (prev === 'unisex' || prev === 'women' || prev === 'men') ? prev : 'unisex');
+    }
+  };
 
   const categories = [
     { id: 'clothing', name: 'Clothing', icon: Shirt },
@@ -109,6 +119,86 @@ const SizeGuidePage = () => {
     }
   ];
 
+  const handleDownloadGuide = () => {
+    let content = '';
+    let filename = 'size-guide.pdf';
+
+    if (selectedCategory === 'clothing') {
+      const current = clothingSizes[selectedGender as keyof typeof clothingSizes];
+      if (!current) return;
+      content += `Size Guide - ${current.name}\n\n`;
+      content += `Size\tChest\tWaist\tLength\n`;
+      content += `----\t-----\t-----\t------\n`;
+      current.measurements.forEach((size: string, idx: number) => {
+        content += `${size}\t${current.chest[idx]}\t${current.waist[idx]}\t${current.length[idx]}\n`;
+      });
+      filename = `size-guide-clothing-${selectedGender}.pdf`;
+    } else if (selectedCategory === 'shoes') {
+      const current = shoeSizes[selectedGender as keyof typeof shoeSizes];
+      if (!current) return;
+      content += `Size Guide - ${current.name}\n\n`;
+      content += `US\tUK\tEU\tCM\n`;
+      content += `--\t--\t--\t--\n`;
+      current.us.forEach((us: string, idx: number) => {
+        content += `${us}\t${current.uk[idx]}\t${current.eu[idx]}\t${current.cm[idx]}\n`;
+      });
+      filename = `size-guide-shoes-${selectedGender}.pdf`;
+    } else if (selectedCategory === 'accessories') {
+      content += `Size Guide - Accessories\n\n`;
+      const entries = Object.values(accessorySizes);
+      entries.forEach((acc) => {
+        content += `${acc.name}\n`;
+        content += `Description: ${acc.description}\n`;
+        content += `Sizes: ${acc.sizes.join(', ')}\n\n`;
+      });
+      filename = `size-guide-accessories.pdf`;
+    }
+
+    // Add measuring tips
+    content += `\n\nMeasuring Tips:\n`;
+    content += `================\n\n`;
+    measuringTips.forEach((tip, index) => {
+      content += `${index + 1}. ${tip.title}\n`;
+      tip.steps.forEach((step, stepIndex) => {
+        content += `   ${stepIndex + 1}. ${step}\n`;
+      });
+      content += `\n`;
+    });
+
+    // Create a new window with the content and trigger print
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Size Guide</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              h1 { color: #2563eb; }
+              table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f3f4f6; }
+              pre { white-space: pre-wrap; font-family: Arial, sans-serif; }
+            </style>
+          </head>
+          <body>
+            <h1>Size Guide</h1>
+            <pre>${content}</pre>
+            <script>
+              window.onload = function() {
+                window.print();
+                window.onafterprint = function() {
+                  window.close();
+                };
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
   const renderClothingTable = () => {
     const currentSizes = clothingSizes[selectedGender as keyof typeof clothingSizes];
     
@@ -140,6 +230,13 @@ const SizeGuidePage = () => {
 
   const renderShoeTable = () => {
     const currentSizes = shoeSizes[selectedGender as keyof typeof shoeSizes];
+    if (!currentSizes) {
+      return (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+          Please select Women's or Men's to view shoe sizes.
+        </div>
+      );
+    }
     
     return (
       <div className="overflow-x-auto">
@@ -189,6 +286,8 @@ const SizeGuidePage = () => {
     );
   };
 
+  const { openChat } = useChat();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -210,7 +309,7 @@ const SizeGuidePage = () => {
             {categories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => handleCategorySelect(category.id)}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
                   selectedCategory === category.id
                     ? 'bg-blue-600 text-white'
@@ -289,10 +388,10 @@ const SizeGuidePage = () => {
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold text-gray-900">
                 {selectedCategory === 'clothing' && clothingSizes[selectedGender as keyof typeof clothingSizes].name}
-                {selectedCategory === 'shoes' && shoeSizes[selectedGender as keyof typeof shoeSizes].name}
+                {selectedCategory === 'shoes' && (shoeSizes[selectedGender as keyof typeof shoeSizes]?.name || 'Shoes Size Guide')}
                 {selectedCategory === 'accessories' && 'Accessories'}
               </h2>
-              <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <button onClick={handleDownloadGuide} className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                 <Download className="w-4 h-4" />
                 <span>Download Guide</span>
               </button>
@@ -372,7 +471,7 @@ const SizeGuidePage = () => {
                       <span>Contact Support</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
-                    <button className="w-full flex items-center space-x-3 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <button onClick={openChat} className="w-full flex items-center space-x-3 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors">
                       <span>Live Chat</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>

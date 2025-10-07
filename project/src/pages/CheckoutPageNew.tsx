@@ -1,22 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { authService, Address } from '../services/authService';
 import { cartService, CartSummary, ShippingOption } from '../services/cartService';
+import { Product } from '../data/products';
 import { orderService } from '../services/orderService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { CreditCard, MapPin, Lock } from 'lucide-react';
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cartItems, clearCart } = useCart();
+  const cartContext = useCart();
+  
+  // Add safety check for cart context
+  if (!cartContext) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-gray-600">Loading cart...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  return <CheckoutContent cartContext={cartContext} navigate={navigate} />;
+};
+
+interface CheckoutContentProps {
+  cartContext: ReturnType<typeof useCart>;
+  navigate: (path: string) => void;
+}
+
+const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate }) => {
+  const { items: cartItems, clearCart } = cartContext;
+  
+  // All hooks must be called at the top level
+  const [isInitializing, setIsInitializing] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
-  const [selectedShipping, setSelectedShipping] = useState<string>('standard');
+  const [selectedShipping] = useState<string>('standard');
   
   const [shippingAddress, setShippingAddress] = useState<Address>({
     id: '',
@@ -44,7 +72,7 @@ const CheckoutPage: React.FC = () => {
     isDefault: false
   });
   
-  const [useSameAddress, setUseSameAddress] = useState(true);
+  const [useSameAddress] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState({
     type: 'card' as const,
     cardNumber: '',
@@ -57,22 +85,67 @@ const CheckoutPage: React.FC = () => {
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number } | null>(null);
 
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      navigate('/cart');
-      return;
-    }
-    
-    loadCheckoutData();
-  }, [cartItems, navigate]);
-
-  const loadCheckoutData = async () => {
+  const loadCheckoutData = useCallback(async () => {
     try {
-      const summary = cartService.getCartSummary();
+      // Create cart summary from context items instead of service
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const tax = subtotal * 0.08; // 8% tax
+      const shipping = subtotal >= 100 ? 0 : 10; // Free shipping over $100
+      const total = subtotal + tax + shipping;
+      
+      const summary: CartSummary = {
+        items: cartItems.map(item => ({
+          id: item.id,
+          product: {
+            id: parseInt(item.id),
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            images: [item.image],
+            stock: 100,
+            category: 'general',
+            subcategory: 'general',
+            brand: 'Generic',
+            description: '',
+            rating: 4.5,
+            reviews: 0,
+            reviewCount: 0,
+            isNew: false,
+            isFeatured: false,
+            tags: [],
+            colors: [],
+            sizes: [],
+            weight: 0,
+            dimensions: { length: 0, width: 0, height: 0 },
+            sku: item.id,
+            barcode: '',
+            warranty: '',
+            returnPolicy: '',
+            shippingInfo: '',
+            availability: 'in-stock',
+            features: [],
+            specifications: {},
+            isOnSale: false,
+            color: '',
+            material: '',
+            style: ''
+          } as unknown as Product,
+          quantity: item.quantity,
+          selectedSize: item.variant,
+          selectedColor: undefined,
+          addedAt: new Date()
+        })),
+        totalItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+        subtotal,
+        tax,
+        shipping,
+        total
+      };
+      
       setCartSummary(summary);
       
-      const shipping = cartService.getShippingOptions();
-      setShippingOptions(shipping);
+      const shippingOptions = cartService.getShippingOptions();
+      setShippingOptions(shippingOptions);
       
       // Load user's saved addresses if logged in
       const currentUser = authService.getCurrentUser();
@@ -91,10 +164,25 @@ const CheckoutPage: React.FC = () => {
           setBillingAddress(defaultBilling);
         }
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load checkout data');
     }
-  };
+  }, [cartItems]);
+
+  useEffect(() => {
+    // Wait for cart items to load
+    if (!cartItems || !Array.isArray(cartItems)) {
+      return;
+    }
+    
+    if (cartItems.length === 0) {
+      navigate('/cart');
+      return;
+    }
+    
+    setIsInitializing(false);
+    loadCheckoutData();
+  }, [cartItems, navigate, loadCheckoutData]);
 
   const handleAddressChange = (type: 'shipping' | 'billing', field: string, value: string) => {
     if (type === 'shipping') {
@@ -104,33 +192,66 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  const handleUseSameAddressChange = (checked: boolean) => {
-    setUseSameAddress(checked);
-    if (checked) {
-      setBillingAddress(shippingAddress);
-    }
-  };
+  // If you later add a checkbox to toggle billing == shipping,
+  // you can call setUseSameAddress and optionally copy the address.
 
   const applyDiscountCode = () => {
-    if (!discountCode.trim()) return;
+    if (!discountCode.trim() || !cartItems) return;
     
-    const summary = cartService.getCartSummary(discountCode);
-    if (summary.discount && summary.discountCode) {
-      setAppliedDiscount({
-        code: summary.discountCode,
-        amount: summary.discount
-      });
-      setCartSummary(summary);
+    // Calculate discount manually
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let discount = 0;
+    
+    // Simple discount logic
+    if (discountCode.toUpperCase() === 'WELCOME10' && subtotal >= 50) {
+      discount = subtotal * 0.1; // 10% off
+    } else if (discountCode.toUpperCase() === 'SAVE20' && subtotal >= 100) {
+      discount = subtotal * 0.2; // 20% off
+    } else if (discountCode.toUpperCase() === 'FREESHIP' && subtotal >= 50) {
+      discount = 10; // $10 off (free shipping)
     } else {
       setError('Invalid discount code');
+      return;
+    }
+    
+    if (discount > 0) {
+      setAppliedDiscount({
+        code: discountCode,
+        amount: discount
+      });
+      
+      // Recalculate cart summary with discount
+      const tax = subtotal * 0.08;
+      const shipping = subtotal >= 100 ? 0 : 10;
+      const total = subtotal + tax + shipping - discount;
+      
+      setCartSummary(prev => prev ? {
+        ...prev,
+        discount,
+        discountCode: discountCode,
+        total
+      } : null);
     }
   };
 
   const removeDiscountCode = () => {
     setDiscountCode('');
     setAppliedDiscount(null);
-    const summary = cartService.getCartSummary();
-    setCartSummary(summary);
+    
+    // Recalculate cart summary without discount
+    if (cartItems) {
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const tax = subtotal * 0.08;
+      const shipping = subtotal >= 100 ? 0 : 10;
+      const total = subtotal + tax + shipping;
+      
+      setCartSummary(prev => prev ? {
+        ...prev,
+        discount: undefined,
+        discountCode: undefined,
+        total
+      } : null);
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -198,6 +319,24 @@ const CheckoutPage: React.FC = () => {
       currency: 'USD'
     }).format(price);
   };
+
+  // Show loading while initializing or if cart is empty
+  if (isInitializing || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-gray-600">
+              {!cartItems || !Array.isArray(cartItems) ? 'Loading cart...' : 
+               cartItems.length === 0 ? 'Cart is empty...' : 
+               'Loading checkout...'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!cartSummary) {
     return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { productService, Product, ProductFilters, SortOption } from '../services/productService';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -16,9 +16,12 @@ const ProductListingPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   
   const { category } = useParams();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search');
   
   const [filters, setFilters] = useState<ProductFilters>({
     category: category || undefined,
+    search: searchQuery || undefined,
     minPrice: undefined,
     maxPrice: undefined,
     rating: undefined,
@@ -72,6 +75,7 @@ const ProductListingPage: React.FC = () => {
   const clearFilters = () => {
     setFilters({
       category: category || undefined,
+      search: undefined,
       minPrice: undefined,
       maxPrice: undefined,
       rating: undefined,
@@ -115,6 +119,17 @@ const ProductListingPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Search Results Header */}
+      {searchQuery && (
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Search Results for "{searchQuery}"
+          </h1>
+          <p className="text-gray-600">
+            {total} {total === 1 ? 'product' : 'products'} found
+          </p>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

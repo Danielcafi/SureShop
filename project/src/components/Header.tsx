@@ -29,9 +29,14 @@ const Header = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      // Navigate to products page with search query
+      navigate(`/products?search=${encodeURIComponent(trimmedQuery)}`);
+      // Close mobile search if active
       setIsSearchActive(false);
+      // Clear search query after navigation
+      setSearchQuery('');
     }
   };
 
@@ -60,6 +65,19 @@ const Header = () => {
       searchRef.current.focus();
     }
   }, [isSearchActive]);
+
+  // Add keyboard shortcut for search (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchActive(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-md shadow-sm z-50 border-b border-gray-100">
@@ -101,7 +119,7 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Search Bar */}
+          {/* Desktop Search Bar - Only show on desktop and when mobile search is not active */}
           <div className="flex-1 max-w-lg mx-6 hidden md:block">
             <form onSubmit={handleSearch} className="relative">
               <input
@@ -119,12 +137,14 @@ const Header = () => {
                 className={`absolute right-10 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors ${
                   isListening ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-gray-600'
                 }`}
+                title="Voice Search"
               >
                 <Mic className="w-4 h-4" />
               </button>
               <button
                 type="submit"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Search"
               >
                 <Search className="w-4 h-4" />
               </button>
@@ -137,6 +157,7 @@ const Header = () => {
             <button
               className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
               onClick={() => setIsSearchActive(true)}
+              title="Search products"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -170,8 +191,8 @@ const Header = () => {
             </Link>
 
             {/* Cart */}
-            <button
-              className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            <div
+              className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
               onMouseEnter={() => setShowMiniCart(true)}
               onMouseLeave={() => setShowMiniCart(false)}
               onClick={() => navigate('/cart')}
@@ -183,7 +204,7 @@ const Header = () => {
                 </span>
               )}
               {showMiniCart && <MiniCart />}
-            </button>
+            </div>
 
             {/* Account */}
             <Link
@@ -224,9 +245,9 @@ const Header = () => {
           </div>
         )}
 
-        {/* Mobile Search Overlay */}
+        {/* Mobile Search Overlay - Only show on mobile and when search is active */}
         {isSearchActive && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-100 p-4">
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-100 p-4 z-50">
             <form onSubmit={handleSearch} className="relative">
               <input
                 ref={searchRef}
@@ -235,6 +256,7 @@ const Header = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
                 className="w-full pl-10 pr-16 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <button
@@ -243,6 +265,7 @@ const Header = () => {
                 className={`absolute right-12 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors ${
                   isListening ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-gray-600'
                 }`}
+                title="Voice Search"
               >
                 <Mic className="w-5 h-5" />
               </button>
@@ -250,6 +273,7 @@ const Header = () => {
                 type="button"
                 onClick={() => setIsSearchActive(false)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Close Search"
               >
                 <X className="w-5 h-5" />
               </button>

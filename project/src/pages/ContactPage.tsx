@@ -14,6 +14,7 @@ const ContactPage = () => {
     type: 'success' | 'error' | null;
     message: string;
   }>({ type: null, message: '' });
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +29,7 @@ const ContactPage = () => {
           type: 'success', 
           message: response.message 
         });
+        setIsFormSubmitted(true);
         setFormData({ name: '', email: '', subject: '', message: '' });
       } else {
         setSubmitStatus({ 
@@ -43,6 +45,12 @@ const ContactPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSendAnother = () => {
+    setIsFormSubmitted(false);
+    setSubmitStatus({ type: null, message: '' });
+    setFormData({ name: '', email: '', subject: '', message: '' });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -157,7 +165,9 @@ const ContactPage = () => {
 
             {/* Contact Form */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                {isFormSubmitted ? 'Message Sent Successfully!' : 'Send us a Message'}
+              </h2>
               
               {/* Status Messages */}
               {submitStatus.type && (
@@ -174,8 +184,28 @@ const ContactPage = () => {
                   <span className="font-medium">{submitStatus.message}</span>
                 </div>
               )}
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Success State - Show after successful submission */}
+              {isFormSubmitted && submitStatus.type === 'success' ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Thank You!</h3>
+                  <p className="text-gray-600 mb-6">
+                    Your message has been sent successfully. We'll get back to you within 24 hours.
+                  </p>
+                  <button
+                    onClick={handleSendAnother}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-8 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center space-x-2 mx-auto"
+                  >
+                    <Send className="w-5 h-5" />
+                    <span>Send Another Message</span>
+                  </button>
+                </div>
+              ) : (
+                /* Form State - Show the actual form */
+                <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -267,6 +297,7 @@ const ContactPage = () => {
                   )}
                 </button>
               </form>
+              )}
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, HelpCircle, MessageCircle, Phone, Mail, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
+import { useChat } from '../contexts/ChatContext';
 
 interface FAQ {
   id: number;
@@ -23,6 +24,12 @@ const HelpCenterPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const { openChat } = useChat();
+  const [chatMessages, setChatMessages] = useState<{ sender: 'agent' | 'user'; text: string; at: number }[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatConnecting, setIsChatConnecting] = useState(false);
 
   const faqs: FAQ[] = [
     {
@@ -142,6 +149,36 @@ const HelpCenterPage = () => {
 
   const categories = ['all', 'Orders', 'Returns', 'Shipping', 'Account', 'Payment', 'Support', 'Getting Started', 'Mobile'];
 
+  // Handler functions for the buttons
+  const handleStartChat = () => {
+    openChat();
+  };
+
+  const handleSendChat = () => {
+    const text = chatInput.trim();
+    if (!text) return;
+    const newUserMsg = { sender: 'user', text, at: Date.now() } as const;
+    setChatMessages(prev => [...prev, newUserMsg]);
+    setChatInput('');
+
+    // Simulated agent response
+    setTimeout(() => {
+      setChatMessages(prev => ([
+        ...prev,
+        { sender: 'agent', text: "Thanks for your message! A support specialist will be with you shortly. Meanwhile, could you share your order number (if any)?", at: Date.now() }
+      ]));
+    }, 900);
+  };
+
+  const handleCallNow = () => {
+    // Open phone dialer with the support number
+    window.open('tel:+15551234567', '_self');
+  };
+
+  const handleSendEmail = () => {
+    setShowEmailModal(true);
+  };
+
   const filteredFAQs = faqs.filter(faq => {
     const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
@@ -186,15 +223,24 @@ const HelpCenterPage = () => {
             </div>
             
             <div className="flex flex-wrap gap-4">
-              <button className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={handleStartChat}
+                className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
                 <MessageCircle className="w-5 h-5" />
                 <span>Live Chat</span>
               </button>
-              <button className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={handleCallNow}
+                className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
                 <Phone className="w-5 h-5" />
                 <span>Call Us</span>
               </button>
-              <button className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={handleSendEmail}
+                className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
                 <Mail className="w-5 h-5" />
                 <span>Email</span>
               </button>
@@ -344,7 +390,10 @@ const HelpCenterPage = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Live Chat</h3>
                 <p className="text-blue-100 mb-4">Get instant help from our support team</p>
-                <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={handleStartChat}
+                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                >
                   Start Chat
                 </button>
               </div>
@@ -355,7 +404,10 @@ const HelpCenterPage = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Phone Support</h3>
                 <p className="text-blue-100 mb-4">Call us at +1 (555) 123-4567</p>
-                <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={handleCallNow}
+                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                >
                   Call Now
                 </button>
               </div>
@@ -366,7 +418,10 @@ const HelpCenterPage = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Email Support</h3>
                 <p className="text-blue-100 mb-4">Send us an email at support@shoppro.com</p>
-                <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={handleSendEmail}
+                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                >
                   Send Email
                 </button>
               </div>
@@ -374,6 +429,102 @@ const HelpCenterPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Chat Modal */}
+      {showChatModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Live Chat</h3>
+              <button 
+                onClick={() => setShowChatModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="text-sm text-gray-500 mb-3">
+              {isChatConnecting ? 'Connecting to an agent…' : 'You are connected. Typical reply time: under 2 minutes.'}
+            </div>
+
+            <div className="border border-gray-200 rounded-lg h-64 overflow-y-auto p-3 mb-3 bg-gray-50">
+              {chatMessages.length === 0 && (
+                <div className="text-gray-400 text-sm h-full flex items-center justify-center">
+                  Starting chat…
+                </div>
+              )}
+              {chatMessages.map((m, i) => (
+                <div key={i} className={`mb-2 flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${m.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-800'}`}>
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSendChat();
+                  }
+                }}
+                placeholder="Type your message…"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleSendChat}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Send Email</h3>
+              <button 
+                onClick={() => setShowEmailModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-gray-600 mb-4">
+              You can email us at support@shoppro.com or click below to open your email client.
+            </p>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => {
+                  // Open default email client
+                  window.open('mailto:support@shoppro.com?subject=Support Request', '_blank');
+                  setShowEmailModal(false);
+                }}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Open Email
+              </button>
+              <button 
+                onClick={() => setShowEmailModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

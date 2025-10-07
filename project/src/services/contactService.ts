@@ -17,7 +17,19 @@ export interface ContactResponse {
 }
 
 class ContactService {
-  private baseUrl = process.env.REACT_APP_API_URL || 'https://localhost:7000';
+  private baseUrl = this.getApiUrl();
+
+  private getApiUrl(): string {
+    // Try to get from Vite environment variables
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+      console.log('Using API URL from environment:', import.meta.env.VITE_API_URL);
+      return import.meta.env.VITE_API_URL;
+    }
+    
+    // Fallback to default development URL
+    console.log('Using default API URL: https://localhost:7000');
+    return 'https://localhost:7000';
+  }
 
   /**
    * Submit contact form

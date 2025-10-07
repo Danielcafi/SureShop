@@ -423,7 +423,20 @@ const TrackOrderPage = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Live Chat</h3>
               <p className="text-gray-600 mb-4">Chat with us instantly</p>
-              <button className="text-purple-600 font-medium hover:underline">
+              <button className="text-purple-600 font-medium hover:underline" onClick={() => {
+                try {
+                  // Lazy import to avoid coupling
+                  const mod = require('../contexts/ChatContext');
+                  if (mod && mod.useChat) {
+                    const { openChat } = mod.useChat();
+                    openChat();
+                  } else {
+                    window.alert('Chat is unavailable at the moment.');
+                  }
+                } catch {
+                  window.alert('Chat is unavailable at the moment.');
+                }
+              }}>
                 Start Chat
               </button>
             </div>

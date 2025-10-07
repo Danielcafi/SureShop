@@ -205,7 +205,7 @@ const ContactPage = () => {
                 </div>
               ) : (
                 /* Form State - Show the actual form */
-                <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -291,8 +291,8 @@ const ContactPage = () => {
                     </>
                   ) : (
                     <>
-                      <Send className="w-5 h-5" />
-                      <span>Send Message</span>
+                  <Send className="w-5 h-5" />
+                  <span>Send Message</span>
                     </>
                   )}
                 </button>

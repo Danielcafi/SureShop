@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Package, Truck, MapPin, Clock, CheckCircle, AlertCircle, Phone, Mail, RefreshCw } from 'lucide-react';
+import { useChat } from '../contexts/ChatContext';
+import { trackOrderByNumberAndEmail, trackOrderByTrackingNumber, TrackedOrder } from '../services/trackingService';
 
 interface TrackingEvent {
   id: number;
@@ -7,26 +9,7 @@ interface TrackingEvent {
   description: string;
   location: string;
   timestamp: string;
-  completed: boolean;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  status: string;
-  trackingNumber: string;
-  estimatedDelivery: string;
-  carrier: string;
-  items: Array<{
-    name: string;
-    quantity: number;
-    image: string;
-  }>;
-  shippingAddress: string;
-  billingAddress: string;
-  paymentMethod: string;
-  total: number;
-  events: TrackingEvent[];
+  isCompleted: boolean;
 }
 
 const TrackOrderPage = () => {
@@ -34,94 +17,56 @@ const TrackOrderPage = () => {
   const [email, setEmail] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
   const [searchMethod, setSearchMethod] = useState('order');
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<TrackedOrder | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
+  const { openChat } = useChat();
 
-  // Mock order data
-  const mockOrder: Order = {
-    id: '1',
-    orderNumber: 'SP-2024-001234',
-    status: 'In Transit',
-    trackingNumber: '1Z999AA1234567890',
-    estimatedDelivery: '2024-01-20',
-    carrier: 'UPS',
-    items: [
-      {
-        name: 'Wireless Bluetooth Headphones',
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-      },
-      {
-        name: 'Smart Fitness Watch',
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-      }
-    ],
-    shippingAddress: '123 Main St, New York, NY 10001',
-    billingAddress: '123 Main St, New York, NY 10001',
-    paymentMethod: 'Visa ending in 1234',
-    total: 299.98,
-    events: [
-      {
-        id: 1,
-        status: 'Order Placed',
-        description: 'Your order has been received and is being processed',
-        location: 'ShopPro Warehouse',
-        timestamp: '2024-01-15T10:30:00Z',
-        completed: true
-      },
-      {
-        id: 2,
-        status: 'Processing',
-        description: 'Your items are being prepared for shipment',
-        location: 'ShopPro Warehouse',
-        timestamp: '2024-01-15T14:45:00Z',
-        completed: true
-      },
-      {
-        id: 3,
-        status: 'Shipped',
-        description: 'Your package has been shipped',
-        location: 'ShopPro Warehouse',
-        timestamp: '2024-01-16T09:15:00Z',
-        completed: true
-      },
-      {
-        id: 4,
-        status: 'In Transit',
-        description: 'Your package is on its way to you',
-        location: 'New York Distribution Center',
-        timestamp: '2024-01-17T16:20:00Z',
-        completed: true
-      },
-      {
-        id: 5,
-        status: 'Out for Delivery',
-        description: 'Your package is out for delivery today',
-        location: 'Local Delivery Hub',
-        timestamp: '2024-01-18T08:00:00Z',
-        completed: false
-      },
-      {
-        id: 6,
-        status: 'Delivered',
-        description: 'Your package has been delivered',
-        location: 'Your Address',
-        timestamp: '',
-        completed: false
-      }
-    ]
-  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
+    setHasSearched(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setOrder(mockOrder);
+    try {
+      let result;
+      
+      if (searchMethod === 'order') {
+        // Search by order number and email
+        if (!orderNumber.trim() || !email.trim()) {
+          setError('Please enter both order number and email address.');
+          setIsLoading(false);
+          return;
+        }
+        
+        result = await trackOrderByNumberAndEmail(orderNumber.trim(), email.trim());
+      } else {
+        // Search by tracking number
+        if (!trackingNumber.trim()) {
+          setError('Please enter a tracking number.');
+          setIsLoading(false);
+          return;
+        }
+        
+        result = await trackOrderByTrackingNumber(trackingNumber.trim());
+      }
+      
+      if (result.success && result.order) {
+        setOrder(result.order);
+        setError('');
+      } else {
+        setError(result.message || 'An error occurred while tracking your order.');
+        setOrder(null);
+      }
+    } catch (error) {
+      console.error('Error tracking order:', error);
+      setError('An unexpected error occurred. Please try again.');
+      setOrder(null);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -231,6 +176,9 @@ const TrackOrderPage = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="your.email@example.com"
                     />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Must match the email used when placing the order
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -249,6 +197,17 @@ const TrackOrderPage = () => {
                   />
                 </div>
               )}
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                    <span className="text-red-700">{error}</span>
+                  </div>
+                </div>
+              )}
+
 
               <button
                 type="submit"
@@ -272,6 +231,34 @@ const TrackOrderPage = () => {
         </div>
       </div>
 
+      {/* No Orders Found */}
+      {hasSearched && !order && !isLoading && (
+        <div className="pb-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Orders Found</h3>
+              <p className="text-gray-600 mb-6">
+                We couldn't find any orders matching your search criteria. Please check your information and try again.
+              </p>
+              <div className="space-y-3">
+                <p className="text-sm text-gray-500">
+                  <strong>Need help?</strong> Contact our support team for assistance.
+                </p>
+                <button 
+                  onClick={openChat}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Contact Support
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Order Details */}
       {order && (
         <div className="pb-16">
@@ -292,18 +279,24 @@ const TrackOrderPage = () => {
                         {order.status}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tracking Number:</span>
-                      <span className="font-medium text-blue-600">{order.trackingNumber}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Estimated Delivery:</span>
-                      <span className="font-medium">{new Date(order.estimatedDelivery).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Carrier:</span>
-                      <span className="font-medium">{order.carrier}</span>
-                    </div>
+                    {order.trackingNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tracking Number:</span>
+                        <span className="font-medium text-blue-600">{order.trackingNumber}</span>
+                      </div>
+                    )}
+                    {order.estimatedDelivery && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Estimated Delivery:</span>
+                        <span className="font-medium">{new Date(order.estimatedDelivery).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {order.carrier && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Carrier:</span>
+                        <span className="font-medium">{order.carrier}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-gray-600">Total:</span>
                       <span className="font-medium">${order.total.toFixed(2)}</span>
@@ -315,15 +308,15 @@ const TrackOrderPage = () => {
                 <div className="bg-white rounded-xl shadow-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Items</h3>
                   <div className="space-y-4">
-                    {order.items.map((item, index) => (
+                    {order.orderItems.map((item, index) => (
                       <div key={index} className="flex items-center space-x-3">
                         <img
-                          src={item.image}
-                          alt={item.name}
+                          src={item.product.imageUrl || 'https://via.placeholder.com/48'}
+                          alt={item.product.name}
                           className="w-12 h-12 rounded-lg object-cover"
                         />
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900 text-sm">{item.name}</div>
+                          <div className="font-medium text-gray-900 text-sm">{item.product.name}</div>
                           <div className="text-gray-500 text-sm">Qty: {item.quantity}</div>
                         </div>
                       </div>
@@ -341,9 +334,9 @@ const TrackOrderPage = () => {
                     <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-300"></div>
                     
                     <div className="space-y-8">
-                      {order.events.map((event, index) => {
+                      {order.trackingEvents.map((event, index) => {
                         const StatusIcon = getStatusIcon(event.status);
-                        const isCompleted = event.completed;
+                        const isCompleted = event.isCompleted;
                         
                         return (
                           <div key={event.id} className="relative flex items-start space-x-4">
@@ -423,20 +416,10 @@ const TrackOrderPage = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Live Chat</h3>
               <p className="text-gray-600 mb-4">Chat with us instantly</p>
-              <button className="text-purple-600 font-medium hover:underline" onClick={() => {
-                try {
-                  // Lazy import to avoid coupling
-                  const mod = require('../contexts/ChatContext');
-                  if (mod && mod.useChat) {
-                    const { openChat } = mod.useChat();
-                    openChat();
-                  } else {
-                    window.alert('Chat is unavailable at the moment.');
-                  }
-                } catch {
-                  window.alert('Chat is unavailable at the moment.');
-                }
-              }}>
+              <button 
+                className="text-purple-600 font-medium hover:underline" 
+                onClick={openChat}
+              >
                 Start Chat
               </button>
             </div>

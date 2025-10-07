@@ -1,8 +1,48 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Package, Clock, CheckCircle, AlertCircle, Info, Download, Mail } from 'lucide-react';
+import { useChat } from '../contexts/ChatContext';
 
 const ReturnsRefundsPage = () => {
   const [selectedStep, setSelectedStep] = useState(1);
+  const { openChat } = useChat();
+
+  const handleDownloadLabel = () => {
+    // Create a sample return label
+    const labelContent = `
+RETURN LABEL
+====================
+
+From: [Your Name]
+     [Your Address]
+     [City, State ZIP]
+
+To: E-commerce Store
+    Returns Department
+    123 Business Street
+    Business City, BC 12345
+
+Tracking Number: RMA-${Date.now()}
+Return Reason: ${returnSteps[selectedStep - 1].title}
+
+Instructions:
+1. Package item securely in original packaging
+2. Attach this label to the outside of the package
+3. Drop off at any carrier location
+4. Keep your tracking number for reference
+
+Thank you for your business!
+    `.trim();
+
+    const blob = new Blob([labelContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `return-label-${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
 
   const returnSteps = [
     {
@@ -235,11 +275,17 @@ const ReturnsRefundsPage = () => {
                   If you have questions about this step, our support team is here to help.
                 </p>
                 <div className="space-y-3">
-                  <button className="w-full flex items-center space-x-3 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                  <button 
+                    onClick={openChat}
+                    className="w-full flex items-center space-x-3 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
                     <Mail className="w-5 h-5" />
                     <span>Contact Support</span>
                   </button>
-                  <button className="w-full flex items-center space-x-3 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button 
+                    onClick={handleDownloadLabel}
+                    className="w-full flex items-center space-x-3 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
                     <Download className="w-5 h-5" />
                     <span>Download Return Label</span>
                   </button>
@@ -335,7 +381,10 @@ const ReturnsRefundsPage = () => {
             <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
               Start Return Process
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+            <button 
+              onClick={openChat}
+              className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+            >
               Contact Support
             </button>
           </div>

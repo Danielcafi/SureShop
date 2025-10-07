@@ -43,7 +43,7 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
     });
   };
 
-  const onError = (err: any) => {
+  const handlePayPalError = (err: any) => {
     onError(err.message || 'PayPal payment failed');
   };
 
@@ -58,7 +58,7 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
           <PayPalButtons
             createOrder={createOrder}
             onApprove={onApprove}
-            onError={onError}
+            onError={handlePayPalError}
             style={{
               layout: 'vertical',
               color: 'blue',

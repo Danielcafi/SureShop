@@ -288,10 +288,10 @@ const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate
       };
 
       const order = await orderService.createOrder(orderData);
-
+      
       // Clear cart
       clearCart();
-
+      
       // Redirect to order confirmation
       navigate(`/orders/${order.id}`);
     } catch (err) {
@@ -541,7 +541,7 @@ const CheckoutContent: React.FC<CheckoutContentProps> = ({ cartContext, navigate
                       </button>
                     ))}
                   </div>
-
+                  
                   {paymentMethod.type === 'card' ? (
                     <StripePaymentForm
                       amount={cartSummary.total}

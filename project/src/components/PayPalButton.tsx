@@ -43,6 +43,7 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
     });
   };
 
+  // Handle PayPal payment errors
   const handlePayPalError = (err: any) => {
     onError(err.message || 'PayPal payment failed');
   };

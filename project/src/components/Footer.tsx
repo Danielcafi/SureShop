@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import { scrollToTop } from '../hooks/useScrollToTop';
+import { newsletterService } from '../services/newsletterService';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -16,12 +17,16 @@ const Footer = () => {
     setSubscriptionMessage('');
 
     try {
-      // Simulate API call - replace with actual newsletter service
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await newsletterService.subscribeToNewsletter(email);
       
-      setSubscriptionMessage('Thank you for subscribing! Check your email for confirmation.');
-      setEmail('');
+      if (result.success) {
+        setSubscriptionMessage(result.message);
+        setEmail('');
+      } else {
+        setSubscriptionMessage(result.message);
+      }
     } catch (error) {
+      console.error('Newsletter subscription error:', error);
       setSubscriptionMessage('Something went wrong. Please try again.');
     } finally {
       setIsSubscribing(false);

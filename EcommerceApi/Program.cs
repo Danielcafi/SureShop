@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using EcommerceApi.Data;
+using EcommerceApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,9 @@ builder.Services.AddSwaggerGen();
 // Add Entity Framework
 builder.Services.AddDbContext<EcommerceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add CORS
 builder.Services.AddCors(options =>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Heart, User, Menu, X, Mic, Bell } from 'lucide-react';
+import logoImage from '../assets/images/logo.png';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useWishlist } from '../contexts/WishlistContext';
@@ -85,11 +86,13 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">ShopPro</span>
+            <div className="flex items-center space-x-3">
+              <img 
+                src={logoImage} 
+                alt="SureShop Logo" 
+                className="w-10 h-10 object-contain"
+              />
+              <span className="text-xl font-bold text-gray-900">SureShop</span>
             </div>
           </Link>
 

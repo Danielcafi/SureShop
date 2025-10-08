@@ -84,6 +84,11 @@ public class NewsletterController : ControllerBase
             // 2. Remove from email marketing service
             // 3. Send confirmation email
 
+            // Simulate async database operation
+            await Task.Delay(100);
+
+            _logger.LogInformation($"Successfully unsubscribed email: {request.Email}");
+
             return Ok(new
             {
                 success = true,

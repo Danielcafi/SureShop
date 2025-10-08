@@ -26,6 +26,9 @@ import ReturnsRefundsPage from './pages/ReturnsRefundsPage';
 import ShippingInfoPage from './pages/ShippingInfoPage';
 import SizeGuidePage from './pages/SizeGuidePage';
 import TrackOrderPage from './pages/TrackOrderPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import CookiePolicyPage from './pages/CookiePolicyPage';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { WishlistProvider } from './contexts/WishlistContext';
@@ -80,6 +83,9 @@ function App() {
                       <Route path="/size-guide" element={<SizeGuidePage />} />
                       <Route path="/track-order" element={<TrackOrderPage />} />
                       <Route path="/notifications" element={<NotificationsPage />} />
+                      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                      <Route path="/terms" element={<TermsOfServicePage />} />
+                      <Route path="/cookies" element={<CookiePolicyPage />} />
                     </Routes>
                   </main>
                   <Footer />

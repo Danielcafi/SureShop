@@ -35,11 +35,11 @@ export const mockProducts: Product[] = [
     description: "The most powerful MacBook Pro ever. With the M2 Max chip, it delivers exceptional performance for professional workflows.",
     price: 2499.99,
     originalPrice: 2799.99,
-    image: "https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400",
+    image: "/src/assets/images/electronics/electronics.png",
     images: [
-      "https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400",
-      "https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=400",
-      "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=400"
+      "/src/assets/images/electronics/electronics.png",
+      "/src/assets/images/electronics/electronics1.jpg",
+      "/src/assets/images/electronics/electronics2.jpg"
     ],
     category: "Electronics",
     subcategory: "Laptops",
@@ -82,10 +82,11 @@ export const mockProducts: Product[] = [
     description: "Industry-leading noise canceling with Dual Noise Sensor technology. Premium sound quality and all-day comfort.",
     price: 399.99,
     originalPrice: 449.99,
-    image: "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=400",
+    image: "/src/assets/images/electronics/electronics1.jpg",
     images: [
-      "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=400",
-      "https://images.pexels.com/photos/3394651/pexels-photo-3394651.jpeg?auto=compress&cs=tinysrgb&w=400"
+      "/src/assets/images/electronics/electronics1.jpg",
+      "/src/assets/images/electronics/electronics2.jpg",
+      "/src/assets/images/electronics/electronics.png"
     ],
     category: "Electronics",
     subcategory: "Audio",
@@ -171,10 +172,11 @@ export const mockProducts: Product[] = [
     description: "The ultimate smartphone with AI-powered features, 200MP camera, and S Pen. Experience the future of mobile technology.",
     price: 1199.99,
     originalPrice: 1299.99,
-    image: "https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=400",
+    image: "/src/assets/images/electronics/electronics2.jpg",
     images: [
-      "https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=400",
-      "https://images.pexels.com/photos/788945/pexels-photo-788945.jpeg?auto=compress&cs=tinysrgb&w=400"
+      "/src/assets/images/electronics/electronics2.jpg",
+      "/src/assets/images/electronics/electronics.png",
+      "/src/assets/images/electronics/electronics1.jpg"
     ],
     category: "Electronics",
     subcategory: "Phones",

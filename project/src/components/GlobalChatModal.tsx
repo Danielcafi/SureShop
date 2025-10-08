@@ -16,7 +16,7 @@ const GlobalChatModal: React.FC = () => {
             <img 
               src={chatSupportIcon} 
               alt="Chat Support" 
-              className="w-10 h-10 object-contain"
+              className="w-16 h-16 object-contain"
             />
             <h3 className="text-lg font-semibold">Live Chat</h3>
           </div>

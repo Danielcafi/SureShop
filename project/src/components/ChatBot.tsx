@@ -54,7 +54,7 @@ const ChatBot = () => {
         <img 
           src={chatSupportIcon} 
           alt="Chat Support" 
-          className="w-16 h-16 object-contain"
+          className="w-24 h-24 object-contain"
         />
       </button>
     );
@@ -68,7 +68,7 @@ const ChatBot = () => {
           <img 
             src={chatSupportIcon} 
             alt="Chat Support" 
-            className="w-8 h-8 object-contain"
+            className="w-12 h-12 object-contain"
           />
           <div>
             <h3 className="font-semibold">Customer Support</h3>

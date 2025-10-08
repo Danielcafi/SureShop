@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useChat } from '../contexts/ChatContext';
+import chatSupportIcon from '../assets/images/icons/chat-support.png';
 
 const GlobalChatModal: React.FC = () => {
   const { isOpen, closeChat, messages, sendMessage, isConnecting } = useChat();
@@ -11,7 +12,14 @@ const GlobalChatModal: React.FC = () => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Live Chat</h3>
+          <div className="flex items-center space-x-2">
+            <img 
+              src={chatSupportIcon} 
+              alt="Chat Support" 
+              className="w-5 h-5 object-contain"
+            />
+            <h3 className="text-lg font-semibold">Live Chat</h3>
+          </div>
           <button onClick={closeChat} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
 

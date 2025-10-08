@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import chatSupportIcon from '../assets/images/icons/chat-support.png';
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +51,11 @@ const ChatBot = () => {
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 z-50 animate-bounce"
       >
-        <MessageCircle className="w-6 h-6" />
+        <img 
+          src={chatSupportIcon} 
+          alt="Chat Support" 
+          className="w-6 h-6 object-contain"
+        />
       </button>
     );
   }
@@ -61,7 +66,11 @@ const ChatBot = () => {
       <div className="bg-blue-600 text-white p-4 rounded-t-2xl flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-            <MessageCircle className="w-4 h-4" />
+            <img 
+              src={chatSupportIcon} 
+              alt="Chat Support" 
+              className="w-4 h-4 object-contain"
+            />
           </div>
           <div>
             <h3 className="font-semibold">Customer Support</h3>
